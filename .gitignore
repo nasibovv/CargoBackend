@@ -1,6 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/macos,pycharm,visualstudio,django
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,pycharm,visualstudio,django
 
+data/db/
 ### Django ###
 *.log
 *.pot
