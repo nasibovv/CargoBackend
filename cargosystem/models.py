@@ -68,3 +68,9 @@ class User(models.Model):
     is_blocked = models.IntegerField(default = 0)
 
     selected_local_warehouse_id = models.IntegerField()
+
+
+class Currency(models.Model):
+    currency_name = models.CharField(max_length=5)
+    currency_sign = models.CharField(max_length=1)
+    currency_rate = models.FloatField()
