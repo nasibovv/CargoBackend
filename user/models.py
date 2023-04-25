@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.core.validators import MinLengthValidator, MaxLengthValidator, EmailValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from core.models import PhonePrefix
 
 
 def custom_sequence():
@@ -26,7 +27,7 @@ class User(models.Model):
     email = models.EmailField(validators=[EmailValidator(message="Invalid email address!")])
 
     gender = models.IntegerField(validators=[MinLengthValidator(0), MaxLengthValidator(1)]) # 1-male, 0-female
-    phone_prefix = models.IntegerField()
+    phone_prefix = models.IntegerField(models.ForeignKey(PhonePrefix, on_delete=models.CASCADE))
 
     phone_regex = RegexValidator(
         regex=r'^[3-9]\d{6}$', 
