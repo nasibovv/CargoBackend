@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.core.validators import MinLengthValidator, MaxLengthValidator, EmailValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from core.models import PhonePrefix
 
 
 def custom_sequence():
@@ -25,8 +26,8 @@ class User(models.Model):
     last_name = models.CharField(max_length=80)
     email = models.EmailField(validators=[EmailValidator(message="Invalid email address!")])
 
-    gender = models.IntegerField(validators=[MinLengthValidator(0), MaxLengthValidator(1)]) # 1-male, 0-female
-    phone_prefix = models.IntegerField()
+    gender = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1)]) # 1-male, 0-female
+    phone_prefix = models.IntegerField(models.ForeignKey(PhonePrefix, on_delete=models.CASCADE))
 
     phone_regex = RegexValidator(
         regex=r'^[3-9]\d{6}$', 
@@ -45,7 +46,7 @@ class User(models.Model):
     (4, "DYI"),
 ]
 
-    gov_prefix_id = models.IntegerField(max_length=1, choices=GOV_PREFIX_CHOICES)
+    gov_prefix_id = models.IntegerField(validators=[MinLengthValidator(1), MaxLengthValidator(4)], choices=GOV_PREFIX_CHOICES)
     gov_id = models.IntegerField(validators=[
         MinValueValidator(1),
         MaxValueValidator(9999999)  # maximum value for 7 digits
@@ -69,19 +70,4 @@ class User(models.Model):
 
     selected_local_warehouse_id = models.IntegerField()
 
-
-class Currency(models.Model):
-    currency_name = models.CharField(max_length=5)
-    currency_sign = models.CharField(max_length=1)
-    currency_rate = models.FloatField()
-
-
-class Wallet(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    currency_id = models.ForeignKey(Currency, on_delete=models.CASCADE)
-    balance = models.DecimalField(max_digits=5, decimal_places=2)
-
-class Country(models.Model):
-    country_name = models.CharField(max_length=100)
-    row_status = models.IntegerField(default = 1)
     
