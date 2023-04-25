@@ -80,3 +80,8 @@ class Wallet(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     currency_id = models.ForeignKey(Currency, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=5, decimal_places=2)
+
+class Country(models.Model):
+    country_name = models.CharField(max_length=100)
+    row_status = models.IntegerField(default = 1)
+    
