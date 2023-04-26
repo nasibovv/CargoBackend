@@ -26,7 +26,7 @@ class User(models.Model):
     last_name = models.CharField(max_length=80)
     email = models.EmailField(validators=[EmailValidator(message="Invalid email address!")])
 
-    gender = models.IntegerField(validators=[MinLengthValidator(0), MaxLengthValidator(1)]) # 1-male, 0-female
+    gender = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1)]) # 1-male, 0-female
     phone_prefix = models.IntegerField(models.ForeignKey(PhonePrefix, on_delete=models.CASCADE))
 
     phone_regex = RegexValidator(
