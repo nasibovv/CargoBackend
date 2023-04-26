@@ -1,3 +1,5 @@
 from django.contrib import admin
+from faq.models import FAQ_category, FAQ
 
-# Register your models here.
+admin.site.register(FAQ_category)
+admin.site.register(FAQ)
