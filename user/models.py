@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.core.validators import MinLengthValidator, MaxLengthValidator, EmailValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from core.models import PhonePrefix
 
 
 def custom_sequence():
@@ -21,12 +22,13 @@ def custom_sequence():
     return largest.client_code + 1
 
 class User(models.Model):
+
     first_name = models.CharField(max_length=70)
     last_name = models.CharField(max_length=80)
     email = models.EmailField(validators=[EmailValidator(message="Invalid email address!")])
 
-    gender = models.IntegerField(validators=[MinLengthValidator(0), MaxLengthValidator(1)]) # 1-male, 0-female
-    phone_prefix = models.IntegerField()
+    gender = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1)]) # 1-male, 0-female
+    phone_prefix = models.IntegerField(models.ForeignKey(PhonePrefix, on_delete=models.CASCADE))
 
     phone_regex = RegexValidator(
         regex=r'^[3-9]\d{6}$', 
@@ -45,19 +47,22 @@ class User(models.Model):
     (4, "DYI"),
 ]
 
-    gov_prefix_id = models.IntegerField(max_length=1, choices=GOV_PREFIX_CHOICES)
-    gov_id = models.IntegerField(validators=[
-        MinValueValidator(1),
-        MaxValueValidator(9999999)  # maximum value for 7 digits
-    ])
+    gov_prefix_id = models.IntegerField(validators=[MinLengthValidator(1), MaxLengthValidator(4)], choices=GOV_PREFIX_CHOICES)
     
-    def clean(self):
-        if self.gov_prefix_id == 1 and not (999999 < self.gov_id <= 99999999):
-            raise ValidationError({'gov_id': 'For AZE prefix, gov_id should have 8 digits.'})
-        elif self.gov_prefix_id == 2 and not (99999 < self.gov_id <= 9999999):
-            raise ValidationError({'gov_id': 'For AA prefix, gov_id should have 7 digits.'})
-        elif self.gov_prefix_id in [3, 4] and not (9999 < self.gov_id <= 999999):
-            raise ValidationError({'gov_id': 'For MYI/DYI prefix, gov_id should have 5 or 6 digits.'})
+    
+    def validate_gov_id(self, value):
+        if self.gov_prefix_id == 1 and not (999999 < value <= 99999999):
+            raise ValidationError(_('For AZE prefix, gov_id should have 8 digits.'))
+        elif self.gov_prefix_id == 2 and not (99999 < value <= 9999999):
+            raise ValidationError(_('For AA prefix, gov_id should have 7 digits.'))
+        elif self.gov_prefix_id in [3, 4] and not (9999 < value <= 999999):
+            raise ValidationError(_('For MYI/DYI prefix, gov_id should have 5 or 6 digits.'))
+
+    gov_id = models.IntegerField(
+        validators=[validate_gov_id],
+        verbose_name=_("Government ID"),
+        help_text=_("Enter your government ID."),
+    )
 
     fin_code = models.CharField(max_length=7, unique=True, validators=[MinLengthValidator(7)])
 
@@ -69,19 +74,4 @@ class User(models.Model):
 
     selected_local_warehouse_id = models.IntegerField()
 
-
-class Currency(models.Model):
-    currency_name = models.CharField(max_length=5)
-    currency_sign = models.CharField(max_length=1)
-    currency_rate = models.FloatField()
-
-
-class Wallet(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    currency_id = models.ForeignKey(Currency, on_delete=models.CASCADE)
-    balance = models.DecimalField(max_digits=5, decimal_places=2)
-
-class Country(models.Model):
-    country_name = models.CharField(max_length=100)
-    row_status = models.IntegerField(default = 1)
     
