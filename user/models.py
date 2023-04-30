@@ -22,6 +22,7 @@ def custom_sequence():
     return largest.client_code + 1
 
 class User(models.Model):
+
     first_name = models.CharField(max_length=70)
     last_name = models.CharField(max_length=80)
     email = models.EmailField(validators=[EmailValidator(message="Invalid email address!")])
@@ -47,18 +48,21 @@ class User(models.Model):
 ]
 
     gov_prefix_id = models.IntegerField(validators=[MinLengthValidator(1), MaxLengthValidator(4)], choices=GOV_PREFIX_CHOICES)
-    gov_id = models.IntegerField(validators=[
-        MinValueValidator(1),
-        MaxValueValidator(9999999)  # maximum value for 7 digits
-    ])
     
-    def clean(self):
-        if self.gov_prefix_id == 1 and not (999999 < self.gov_id <= 99999999):
-            raise ValidationError({'gov_id': 'For AZE prefix, gov_id should have 8 digits.'})
-        elif self.gov_prefix_id == 2 and not (99999 < self.gov_id <= 9999999):
-            raise ValidationError({'gov_id': 'For AA prefix, gov_id should have 7 digits.'})
-        elif self.gov_prefix_id in [3, 4] and not (9999 < self.gov_id <= 999999):
-            raise ValidationError({'gov_id': 'For MYI/DYI prefix, gov_id should have 5 or 6 digits.'})
+    
+    def validate_gov_id(self, value):
+        if self.gov_prefix_id == 1 and not (999999 < value <= 99999999):
+            raise ValidationError(_('For AZE prefix, gov_id should have 8 digits.'))
+        elif self.gov_prefix_id == 2 and not (99999 < value <= 9999999):
+            raise ValidationError(_('For AA prefix, gov_id should have 7 digits.'))
+        elif self.gov_prefix_id in [3, 4] and not (9999 < value <= 999999):
+            raise ValidationError(_('For MYI/DYI prefix, gov_id should have 5 or 6 digits.'))
+
+    gov_id = models.IntegerField(
+        validators=[validate_gov_id],
+        verbose_name=_("Government ID"),
+        help_text=_("Enter your government ID."),
+    )
 
     fin_code = models.CharField(max_length=7, unique=True, validators=[MinLengthValidator(7)])
 
